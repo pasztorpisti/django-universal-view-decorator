@@ -169,7 +169,7 @@ This library has two features to offer:
             # Note: You can use `self.my_decorator_arg` here.
 
             # If you need the request arg and you know that in case of view class
-            # method decoration your decorated view methods always has a request arg.
+            # method decoration your decorated view methods always have a request arg.
             request = args[0]
             test = self._perform_test(*args)
             # TODO: manipulate the request and/or return a response instead of calling
