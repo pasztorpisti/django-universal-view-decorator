@@ -10,6 +10,10 @@ django-universal-view-decorator
     :target: https://www.codacy.com/app/pasztorpisti/django-universal-view-decorator
     :alt: code quality
 
+.. image:: https://landscape.io/github/pasztorpisti/django-universal-view-decorator/master/landscape.svg?style=flat
+    :target: https://landscape.io/github/pasztorpisti/django-universal-view-decorator/master
+    :alt: code health
+
 .. image:: https://img.shields.io/coveralls/pasztorpisti/django-universal-view-decorator/master.svg?style=flat
     :target: https://coveralls.io/r/pasztorpisti/django-universal-view-decorator?branch=master
     :alt: coverage
