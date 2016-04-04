@@ -1,0 +1,6 @@
+pylint:
+  disable:
+    - unused-argument
+max-line-length: 120
+uses:
+    - django
