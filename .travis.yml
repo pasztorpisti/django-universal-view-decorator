@@ -9,6 +9,11 @@ python:
 install:
   - pip install -r requirements.txt
 script:
-  - python runtests.py
+  - python -m compileall -f .
+  - pip install coveralls
+  - coverage run --source=django_universal_view_decorator runtests.py
+  #- python runtests.py
+after_success:
+  coveralls
 notifications:
   email: false
