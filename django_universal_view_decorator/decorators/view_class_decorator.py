@@ -18,7 +18,7 @@ class ViewClassDecorator(object):
         # I've seen multiple inheritance in case of django views only with mixin usage, never by inheriting from
         # two or more `View` derivatives. For this reason and for the sake of simplicity this view class decorator
         # won't support that kind of multiple inheritance. This means that you can not put this decorator on view
-        # mixins and if you inherit from two or more decorated `View` subclasses (but why whould you do that???) then
+        # mixins and if you inherit from two or more decorated `View` subclasses (but why would you do that???) then
         # your view class will inherit decorators only from the first one (that was listed first in the base class
         # list).
 
