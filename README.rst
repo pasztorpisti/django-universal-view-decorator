@@ -2,6 +2,19 @@
 django-universal-view-decorator
 ===============================
 
+
+.. image:: https://img.shields.io/travis/pasztorpisti/django-universal-view-decorator.svg?style=flat
+    :target: https://travis-ci.org/pasztorpisti/django-universal-view-decorator
+    :alt: build
+
+.. image:: https://img.shields.io/github/tag/pasztorpisti/django-universal-view-decorator.svg?style=flat
+    :target: https://github.com/pasztorpisti/django-universal-view-decorator
+    :alt: github
+
+.. image:: https://img.shields.io/github/license/pasztorpisti/django-universal-view-decorator.svg?style=flat
+    :target: https://github.com/pasztorpisti/django-universal-view-decorator/blob/master/LICENSE.txt
+    :alt: license: MIT
+
 .. contents::
 
 ------------
