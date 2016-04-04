@@ -2,10 +2,13 @@
 django-universal-view-decorator
 ===============================
 
-
 .. image:: https://img.shields.io/travis/pasztorpisti/django-universal-view-decorator.svg?style=flat
     :target: https://travis-ci.org/pasztorpisti/django-universal-view-decorator
     :alt: build
+
+.. image:: https://img.shields.io/coveralls/pasztorpisti/django-universal-view-decorator/master.svg?style=flat
+    :target: https://coveralls.io/r/pasztorpisti/django-universal-view-decorator?branch=master
+    :alt: coverage
 
 .. image:: https://img.shields.io/github/tag/pasztorpisti/django-universal-view-decorator.svg?style=flat
     :target: https://github.com/pasztorpisti/django-universal-view-decorator
