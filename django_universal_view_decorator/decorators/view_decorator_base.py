@@ -128,10 +128,10 @@ class ViewDecoratorBase(object):
     def _is_decorator_arg(cls, arg):
         """ When the view decorator has no required args but it has at least 1 default arg (`num_required_args == 1`)
         then it is optional to provide the empty brackets `()` when you want to instantiate your decorator.
-        There is only one problematic scenario: when the decorator receives only one argument it is difficult or impossible
-        to find out whether this argument is an arg for the newly instantiated decorator, or a decoratable object that
-        you want to decorate with the decorator that was instantiated without parameters without the optional empty
-        brackets `()`:
+        There is only one problematic scenario: when the decorator receives only one argument it is difficult or
+        impossible to find out whether this argument is an arg for the newly instantiated decorator, or a decoratable
+        object that you want to decorate with the decorator that was instantiated without parameters without the
+        optional empty brackets `()`:
 
         .. code-block:: python
 
@@ -144,11 +144,11 @@ class ViewDecoratorBase(object):
                 ...
 
 
-        In both cases the decorator receives only one argument. If the argument isn't a function, class, or class method
-        then it is obviously a positional decorator argument so our decorator implementation can automatically detect this
-        case. However if we face a pathological case where your decorator argument is a function, class, or class method
-        then a human (you) has to deal with the problem. A very easy workaround is passing the decorator argument as a
-        kwarg:
+        In both cases the decorator receives only one argument. If the argument isn't a function, class, or class
+        method then it is obviously a positional decorator argument so our decorator implementation can automatically
+        detect this case. However if we face a pathological case where your decorator argument is a function, class, or
+        class method then a human (you) has to deal with the problem. A very easy workaround is passing the decorator
+        argument as a kwarg:
 
         .. code-block:: python
 
