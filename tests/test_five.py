@@ -51,6 +51,10 @@ class TestQualName(TestCase):
         self.assertEqual(qualname(QualNameTestClass), 'QualNameTestClass')
         self.assertEqual(full_qualname(QualNameTestClass), 'tests.test_five.QualNameTestClass')
 
+    def test_with_class_instance(self):
+        self.assertEqual(qualname(QualNameTestClass()), 'QualNameTestClass')
+        self.assertEqual(full_qualname(QualNameTestClass()), 'tests.test_five.QualNameTestClass')
+
     def test_with_function(self):
         self.assertEqual(qualname(qualname_test_function), 'qualname_test_function')
         self.assertEqual(full_qualname(qualname_test_function), 'tests.test_five.qualname_test_function')
