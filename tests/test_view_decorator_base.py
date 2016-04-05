@@ -295,3 +295,25 @@ class TestStackedDecoration(TestCase):
             mock.call(MyViewDecoratorWithArg, arg2=42),
             mock.call('dispatch', 'request', arg0=40, arg1=41, arg2=42),
         ])
+
+
+class TestInternals(TestCase):
+    @mock.patch(__name__ + '.test_log', wraps=test_log)
+    def test_default_call_view_function_implementation_calls_the_wrapped_view(self, mock_test_log):
+        class MyDecorator(ViewDecoratorBase):
+            def _call_view_function(self, decoration_instance, view_class_instance, view_function, *args, **kwargs):
+                test_log('decorator', 'testing_default_call_view_function_implementation')
+                return super(MyDecorator, self)._call_view_function(
+                    decoration_instance, view_class_instance, view_function, *args, **kwargs)
+
+        @MyDecorator.universal_decorator
+        def view_function(request):
+            test_log('view_function', request)
+            return 'response'
+
+        response = view_function('request')
+        self.assertEqual(response, 'response')
+        self.assertListEqual(mock_test_log.mock_calls, [
+            mock.call('decorator', 'testing_default_call_view_function_implementation'),
+            mock.call('view_function', 'request'),
+        ])
