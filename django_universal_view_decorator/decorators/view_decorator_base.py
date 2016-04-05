@@ -173,8 +173,15 @@ class _ViewDecoration(object):
     is an instance of this class. """
     def __init__(self, wrapped, view_decorator, call_view_function):
         assert inspect.isroutine(wrapped)
+
+        # Calling update_wrapper() before assigning any instance attributes because
+        # otherwise update_wrapper() might overwrite our things in self.__dict__.
+        # For example by wrapping a view twice with this _ViewDecoration the instance attributes of
+        # the second wrapper (like self.wrapped) could be overwritten by a not so well placed
+        # update_wrapper() call.
+        update_wrapper(self, wrapped)
+
         self.wrapped = wrapped
-        update_wrapper(self, wrapped, updated=())
         # self.view_decorator for debugging
         self.view_decorator = view_decorator
         self.call_view_function = call_view_function

@@ -142,8 +142,12 @@ class _AsViewDecorator(object):
     This decorator applies decorator(s) to the view function returned by the decorated `as_view()`. """
     def __init__(self, wrapped_as_view):
         super(_AsViewDecorator, self).__init__()
+
+        # Calling update_wrapper() before assigning any instance attributes
+        # because otherwise update_wrapper() might overwrite our things in self.__dict__.
+        update_wrapper(self, wrapped_as_view)
+
         self.wrapped_as_view = wrapped_as_view
-        update_wrapper(self, wrapped_as_view, updated=())
 
     def __get__(self, instance, owner=None):
         bound_as_view = self.wrapped_as_view.__get__(instance, owner)
