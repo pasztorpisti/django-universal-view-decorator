@@ -80,6 +80,3 @@ elif PY2:
                      .format(cause_str=cause_str, orig_message=ex.message)
         ex.args = ex.message,
         raise ex
-
-else:
-    raise RuntimeError('This stuff should be executed under python2.7+ or python3.3+')
