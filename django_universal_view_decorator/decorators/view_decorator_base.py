@@ -1,6 +1,7 @@
 import inspect
 import types
 
+from ..five import getfullargspec, full_qualname, raise_from
 from ..utils import class_property, update_wrapper, wraps
 from .view_class_decorator import view_class_decorator
 
@@ -11,7 +12,7 @@ class ViewDecoratorBase(object):
     possible to omit the parameter list and the surrounding parents when optional decorator arguments are omitted. """
 
     # We define this empty logicless __init__ because otherwise under python2 the
-    # `inspect.getargspec(cls.__init__)` statement fails below in our `num_required_args`
+    # `inspect.getargspec(cls.__init__)` statement fails in our `num_required_args`
     # classproperty implementation.
     def __init__(self):
         """ Override this and add some arguments to your `__init__()` implementation if you want your decorator
@@ -53,8 +54,8 @@ class ViewDecoratorBase(object):
         the `()` required in case of zero args you can explicitly set the `num_required_args = 0` class attribute on
         your decorator class.
         """
-        argspec = inspect.getargspec(cls.__init__)
-        if (len(argspec.args), argspec.varargs, argspec.keywords, argspec.defaults) == (1, None, None, None):
+        argspec = getfullargspec(cls.__init__)
+        if (len(argspec.args), argspec.varargs, argspec.varkw, argspec.defaults) == (1, None, None, None):
             return None
         result = len(argspec.args) - 1
         if argspec.defaults:
@@ -71,8 +72,6 @@ class ViewDecoratorBase(object):
 
         def decorator_with_optional_args(*args, **kwargs):
             if num_required_args >= 0 or cls._are_decorator_args(args, kwargs):
-                assert len(args)+len(kwargs) >= num_required_args, 'Decorator "{}" has {} required arguments'.format(
-                    cls.__name__, num_required_args)
                 return cls.__transform_to_universal_decorator(*args, **kwargs)
             else:
                 return cls.__transform_to_universal_decorator()(args[0])
@@ -85,11 +84,28 @@ class ViewDecoratorBase(object):
         """ Returns a decorator that auto-detects the type of the decorated object (regular view function, view
         class method, or view class) and applies this decorator class to it appropriately along with the extra
         decorator args. """
-        def _universal_decorator(class_or_routine):
+        # We instantiate the view_decorator outside of the _universal_decorator() closure in order to
+        # avoid postponing problems with the decorator *args and **kwargs. This makes debugging easier.
+        try:
             view_decorator = cls(*args, **kwargs)
+        except TypeError as ex:
+            raise_from(
+                TypeError(
+                    'This error may be the result of passing the wrong number of arguments to a view decorator.\n'
+                    '  - decorator={decorator_name}\n  - args={args}\n  - kwargs={kwargs}'
+                    .format(decorator_name=full_qualname(cls), args=args, kwargs=kwargs)
+                ),
+                ex,
+            )
+
+        def _universal_decorator(class_or_routine):
             if inspect.isroutine(class_or_routine):
                 return view_decorator(class_or_routine)
-            return view_class_decorator(view_decorator)(class_or_routine)
+            elif inspect.isclass(class_or_routine):
+                return view_class_decorator(view_decorator)(class_or_routine)
+            else:
+                raise TypeError("Expected a regular view function, view class, or view class method, got {!r} instead."
+                                .format(class_or_routine))
         # for debugging
         _universal_decorator.__name__ = '{}.universal_decorator'.format(cls.__name__)
         return _universal_decorator
@@ -110,13 +126,43 @@ class ViewDecoratorBase(object):
 
     @classmethod
     def _is_decorator_arg(cls, arg):
-        """ If the decorator receives only a single positional argument and it is a routine or a class, then the
-        automatic detection (the `_are_decorator_args()` method) can't decide whether this arg is a parameter for the
-        decorator or a decoratable object. In that case this method has to decide. The default implementation always
-        returns `False` so a single argument of routine or class type will be treated as a decoratable object.
-        If you face this edge case you can either implement this method with some fancy logic or as an alternative
-        workaround you can pass the single decorator argument as a kwarg instead of a positional argument. In that
-        case `_are_decorator_args()` automatically finds out that this kwarg is for the decorator. """
+        """ When the view decorator has no required args but it has at least 1 default arg (`num_required_args == 1`)
+        then it is optional to provide the empty brackets `()` when you want to instantiate your decorator.
+        There is only one problematic scenario: when the decorator receives only one argument it is difficult or impossible
+        to find out whether this argument is an arg for the newly instantiated decorator, or a decoratable object that
+        you want to decorate with the decorator that was instantiated without parameters without the optional empty
+        brackets `()`:
+
+        .. code-block:: python
+
+            @my_decorator(only_one_default_positional_arg)
+            def my_view(request):
+                ...
+
+            @my_decorator
+            def my_view(request):
+                ...
+
+
+        In both cases the decorator receives only one argument. If the argument isn't a function, class, or class method
+        then it is obviously a positional decorator argument so our decorator implementation can automatically detect this
+        case. However if we face a pathological case where your decorator argument is a function, class, or class method
+        then a human (you) has to deal with the problem. A very easy workaround is passing the decorator argument as a
+        kwarg:
+
+        .. code-block:: python
+
+            @my_decorator(optional_first_positional_arg=only_one_default_positional_arg)
+            def my_view(request):
+                ....
+
+
+        This way the decorator implementation will immediately know that this arg is a decorator arg and not a view that
+        is being decorated. A more complicated way to deal with the problem is overriding the
+        `ViewDecoratorBase._is_decorator_arg()` method and providing your own logic there to deal with this pathological
+        case. This method is called only when the decorator has no required args, has at least 1 default arg and someone
+        calls the decorator with only one argument that is a function, class, or class method. In this case your logic
+        can help the decorator to decide. """
         return False
 
 

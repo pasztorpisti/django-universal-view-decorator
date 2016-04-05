@@ -75,11 +75,12 @@ class ViewClassDecorator(object):
             # skipping duplicate_id that has no new decorator or has less than 2 decorators in total
             if len(duplicates) < 2 or duplicates[0]['group'] != 'new':
                 continue
-            decorators = self._handle_duplicate_id(duplicate_id, duplicates, decorators)
+            self._handle_duplicate_id(duplicate_id, duplicates, decorators)
 
+        # Simplifying the items in the decorators array and dropping deleted/None items.
         return tuple(
             dict(decorator=item['decorator'], view_class=item['view_class'])
-            for item in decorators
+            for item in decorators if item is not None
         )
 
     def _handle_duplicate_id(self, duplicate_id, duplicates, decorators):
@@ -95,6 +96,7 @@ class ViewClassDecorator(object):
             duplicate_handler_func = self._default_duplicate_handler_func
 
         duplicate_handler_func(duplicate_id, duplicates)
+        assert len(duplicates) == len(duplicates_copy)
 
         # after the duplicate_handler_func() call each item in the duplicates array can be one of the following things:
         # 1. None: This means that the duplicate handler deleted this decorator.
@@ -103,17 +105,21 @@ class ViewClassDecorator(object):
         # 3. A decorator: The duplicate handler wants us to use this decorator instead of the old one.
 
         duplicates = [item['decorator'] if isinstance(item, dict) else item for item in duplicates]
-        decorators = decorators[:]
         for i, decorator in enumerate(duplicates):
             decorators[duplicates_copy[i]['index']] = None if decorator is None else dict(
                 decorator=decorator, view_class=duplicates_copy[i]['view_class'])
 
-        # Dropping `None`/deleted decorators
-        return filter(None, decorators)
-
     @staticmethod
     def _default_duplicate_handler_func(duplicate_id, duplicates):
-        # TODO: docstring
+        """ This default duplicate handler func gets the priority of each duplicate and deletes all duplicates
+        except one with the highest priority. If there are multiple decorators with the highest priority then we
+        keep only the oldest from these (the one that was applied earlier). The priority of the decorators is
+        retrieved by getting the `decorator_duplicate_priority` attribute of the decorator object - if this
+        attribute isn't present then the decorator automatically has a very low constant priority that is
+        `-sys.maxsize`. If you specify a priority for your decorator using the `decorator_duplicate_priority`
+        attribute then it should be an integral value. If you don't specify a priority for your decorators then
+        all of them will have the default `-sys.maxint` priority so this default duplicate handler func always keeps
+        only the oldest duplicate - the one that has been applied first in the class hierarchy. """
         index_to_keep = None
         kept_priority = -sys.maxsize - 1
         for reverse_index, item in enumerate(reversed(duplicates)):

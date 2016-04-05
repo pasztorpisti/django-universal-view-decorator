@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.views.generic import View
 
 from django_universal_view_decorator import view_class_decorator
+from django_universal_view_decorator.decorators.view_class_decorator import ViewClassDecorator
 
 
 def test_log(*args, **kwargs):
@@ -143,3 +144,43 @@ class TestStackedDecoration(TestCase):
             mock.call('decorator', 4),
             mock.call('dispatch'),
         ])
+
+
+class TestInternals(TestCase):
+    def test_as_view_method_gets_decorated_only_on_the_first_decorated_ancestor_view_class(self):
+        with mock.patch.object(ViewClassDecorator, '_ViewClassDecorator__decorate_the_as_view_method',
+                               wraps=getattr(ViewClassDecorator, '_ViewClassDecorator__decorate_the_as_view_method')) \
+                               as mock_decorate_the_as_view_method:
+            class BaseBase(View):
+                pass
+
+            @view_class_decorator(decorator(0))
+            class Base(BaseBase):
+                pass
+
+            @view_class_decorator(decorator(1))
+            class Derived1(Base):
+                pass
+
+            @view_class_decorator(decorator(2))
+            class Derived2(Base):
+                pass
+
+            @view_class_decorator(decorator(21))
+            class Derived2_1(Derived2):
+                pass
+
+            mock_decorate_the_as_view_method.assert_called_once_with(Base)
+
+
+class TestDecorationErrors(TestCase):
+    def test_trying_to_decorate_a_non_view_class_fails(self):
+        class NonViewClass(object):
+            pass
+
+        self.assertRaisesMessage(
+            TypeError,
+            "The decorated view class ({}) doesn't have an as_view() method.".format(NonViewClass),
+            view_class_decorator(decorator(0)),
+            NonViewClass
+        )
