@@ -172,6 +172,7 @@ class _ViewDecoration(object):
     the `ViewDecoratorBase._on_decoration_instance_created()` and `ViewDecoratorBase._call_view_function()` methods
     is an instance of this class. """
     def __init__(self, wrapped, view_decorator, call_view_function):
+        super(_ViewDecoration, self).__init__()
         assert inspect.isroutine(wrapped)
 
         # Calling update_wrapper() before assigning any instance attributes because

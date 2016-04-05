@@ -3,6 +3,7 @@ from functools import partial, WRAPPER_ASSIGNMENTS, WRAPPER_UPDATES
 
 class ClassProperty(object):
     def __init__(self, fget=None):
+        super(ClassProperty, self).__init__()
         self.fget = fget
 
     def __get__(self, instance, owner=None):

@@ -15,6 +15,7 @@ def test_log(*args, **kwargs):
 
 class Decorator(object):
     def __init__(self, duplicate_id, data=None, **extra_decorator_attributes):
+        super(Decorator, self).__init__()
         self.duplicate_id = duplicate_id
         # We set self.decorator_duplicate_id to be used by view_class_decorator when doing duplicate check.
         self.decorator_duplicate_id = duplicate_id

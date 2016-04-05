@@ -12,6 +12,7 @@ def test_log(*args, **kwargs):
 
 class Decorator(object):
     def __init__(self, decorator_id):
+        super(Decorator, self).__init__()
         self.decorator_id = decorator_id
 
     def __call__(self, wrapped):
