@@ -37,7 +37,7 @@ Introduction
 
 In django you can implement views in two different standard ways (regular view function, class based view) and the same
 project can make use of both techniques in parallel. In case of class based views I've seen several ways of decorating
-them and none of the techniques were really attractive to me (visually and functionally).
+them and none of the techniques were really attractive to me (visually and/or functionally).
 
 You are probably familiar at least with the easiest ways of writing a decorator: implementing it as a regular function
 (or class) and applying it only to regular view functions. Implementing a decorator that can be applied to bot regular
