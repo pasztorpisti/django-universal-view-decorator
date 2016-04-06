@@ -61,5 +61,5 @@ setup(
     packages=['django_universal_view_decorator', 'tests'],
 
     test_suite='setup_test_suite.SetupTestSuite',
-    tests_require=['django==1.8', 'mock==1.3.0'],
+    tests_require=['django==1.8', 'mock'],
 )
