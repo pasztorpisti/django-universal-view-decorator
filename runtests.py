@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
-# This is a very simple minimalistic script so I keep it but this is not the preferred way to run the tests.
-# The "setup.py test [options]" command should be used instead because that handles the test dependencies.
+# There is another way to run the tests and that method handles the test dependencies:
+# $ setup.py test [options]
+#
+# This script doesn't handle the dependencies (you have to install them manually) but
+# running this is ways faster than "setup.py test". For local dev testing this is perfect.
 
 import os
 import sys
