@@ -7,7 +7,7 @@ class ClassProperty(object):
         self.fget = fget
 
     def __get__(self, instance, owner=None):
-        return self.fget(owner)
+        return self.fget(owner or type(instance))
 
     def getter(self, fget):
         self.fget = fget
