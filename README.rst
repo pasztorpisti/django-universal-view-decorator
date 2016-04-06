@@ -56,7 +56,7 @@ solution to reuse legacy decorators in a more flexible way.
 
 The goals of this library:
 
-- Easy way to implement a view decorator that can be applied to:
+- Easy way to implement view decorators that can be applied to:
 
   - regular view functions
   - view class methods
