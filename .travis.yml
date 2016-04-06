@@ -7,13 +7,10 @@ python:
   #- "nightly"
   - "pypy"
 install:
-  - pip install django==1.8
-  - pip install mock==1.3.0
+  - pip install coveralls
 script:
   - python -m compileall -f .
-  - pip install coveralls
-  - coverage run --source=django_universal_view_decorator runtests.py
-  #- python runtests.py
+  - coverage run --source=django_universal_view_decorator setup.py test
 after_success:
   coveralls
 notifications:
