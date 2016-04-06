@@ -81,7 +81,12 @@ setup(
     ],
 
     keywords='django universal view class decorator',
-    packages=['django_universal_view_decorator', 'tests'],
+    packages=[
+        'django_universal_view_decorator',
+        'django_universal_view_decorator.decorators',
+        'tests',
+        'tests.test_app',
+    ],
 
     test_suite='setup_test_suite.SetupTestSuite',
     tests_require=['django==1.8', 'mock'],
