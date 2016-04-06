@@ -30,10 +30,13 @@ class SetupTestSuite(TestSuite):
 
     @staticmethod
     def _parse_args():
-        parser = argparse.ArgumentParser(prog=' '.join(sys.argv[:2]),
-                                         description='Installs the test dependencies and runs the tests.')
+        parser = argparse.ArgumentParser(
+            prog=' '.join(sys.argv[:2]),
+            description='Installs the test dependencies and runs the tests.',
+            add_help=False,
+        )
         parser.add_argument('-v', '--verbosity', type=int, choices=(0, 1, 2, 3), default=1,
-                            help='Verbosity level; 0=minimal output, 1=normal output, '
+                            help='Verbosity level: 0=minimal output, 1=normal output, '
                                  '2=verbose output, 3=very verbose output')
         parser.add_argument('--failfast', action='store_const', const=True, default=False,
                             help='Tells Django to stop running the test suite after first failed test.')

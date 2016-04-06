@@ -11,13 +11,21 @@ from setuptools.command.test import test as orig_test
 # help text is printed, this is why I've used "test" as a class name.
 class test(orig_test):
     # Removed the options of the original class: --test-module, --test-suite, --test-runner
-    user_options = []
+    user_options = [
+        ('verbosity=', 'v', 'Verbosity level: 0=minimal output, 1=normal output, '
+         '2=verbose output, 3=very verbose output'),
+        ('failfast', None, 'Tells Django to stop running the test suite after first failed test.'),
+        ('reverse', 'r', 'Reverses test cases order.'),
+    ]
     # We ask the arg parser of the command to pass all args to us.
     command_consumes_arguments = True
 
     def initialize_options(self):
         orig_test.initialize_options(self)
-        # This is needed because of the above "command_consumes_arguments" class attribute.
+        self.verbosity = None
+        self.failfast = None
+        self.reverse = None
+        # self.args is needed because of the above "command_consumes_arguments" class attribute.
         self.args = None
 
 
