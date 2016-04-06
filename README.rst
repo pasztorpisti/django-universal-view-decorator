@@ -19,6 +19,10 @@ django-universal-view-decorator
     :target: https://coveralls.io/r/pasztorpisti/django-universal-view-decorator?branch=master
     :alt: coverage
 
+.. image:: https://img.shields.io/pypi/v/django-universal-view-decorator.svg?style=flat
+    :target: https://pypi.python.org/pypi/django-universal-view-decorator
+    :alt: pypi
+
 .. image:: https://img.shields.io/github/tag/pasztorpisti/django-universal-view-decorator.svg?style=flat
     :target: https://github.com/pasztorpisti/django-universal-view-decorator
     :alt: github
