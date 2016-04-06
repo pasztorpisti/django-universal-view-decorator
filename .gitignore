@@ -1,7 +1,11 @@
+/.eggs/
 /.idea/
 /build/
 /dist/
 /django_universal_view_decorator.egg-info/
+
+/.coverage
 /README.html
+
 *.pyc
 *.pyo
