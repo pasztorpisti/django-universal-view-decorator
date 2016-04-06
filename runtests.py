@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+
+# This is a very simple minimalistic script so I keep it but this is not the preferred way to run the tests.
+# The "setup.py test [options]" command should be used instead because that handles the test dependencies.
+
 import os
 import sys
 
