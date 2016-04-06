@@ -1,3 +1,4 @@
 include README.rst
 include LICENSE.txt
 include runtests.py
+include setup_test_suite.py
