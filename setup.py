@@ -4,6 +4,21 @@ import os
 import re
 import codecs
 from setuptools import setup
+from setuptools.command.test import test as orig_test
+
+
+# Note: the name of the class is used as the name of the command on the console when the
+# help text is printed, this is why I've used "test" as a class name.
+class test(orig_test):
+    # Removed the options of the original class: --test-module, --test-suite, --test-runner
+    user_options = []
+    # We ask the arg parser of the command to pass all args to us.
+    command_consumes_arguments = True
+
+    def initialize_options(self):
+        orig_test.initialize_options(self)
+        # This is needed because of the above "command_consumes_arguments" class attribute.
+        self.args = None
 
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -62,4 +77,5 @@ setup(
 
     test_suite='setup_test_suite.SetupTestSuite',
     tests_require=['django==1.8', 'mock'],
+    cmdclass={'test': test},
 )
