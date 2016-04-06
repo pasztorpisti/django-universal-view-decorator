@@ -40,7 +40,7 @@ project can make use of both techniques in parallel. In case of class based view
 them and none of the techniques were really attractive to me (visually and/or functionally).
 
 You are probably familiar at least with the easiest ways of writing a decorator: implementing it as a regular function
-(or class) and applying it only to regular view functions. Implementing a decorator that can be applied to bot regular
+(or class) and applying it only to regular view functions. Implementing a decorator that can be applied to both regular
 view functions and instance methods is more challenging especially if you want to access the arguments of the decorated
 function/method.
 
