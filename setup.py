@@ -3,15 +3,10 @@
 import os
 import re
 import codecs
-try:
-    from setuptools import setup
-    have_setuptools = True
-except ImportError:
-    from distutils.core import setup
-    have_setuptools = False
+from setuptools import setup
 
 
-script_dir = os.path.abspath(os.path.dirname(__file__))
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def find_version(*path):
@@ -30,15 +25,8 @@ def find_version(*path):
     raise RuntimeError('Unable to determine package version.')
 
 
-# Get the long description from the relevant file
-# with open('DESCRIPTION.rst', encoding='utf-8') as f:
-#     long_description = f.read()
-
-
-extra_setup_params = {}
-if have_setuptools:
-    extra_setup_params['test_suite'] = 'tests'
-    extra_setup_params['tests_require'] = ['django==1.8', 'mock']
+with codecs.open(os.path.join(script_dir, 'README.rst'), 'r', 'utf8') as f:
+    long_description = f.read()
 
 
 setup(
@@ -46,7 +34,7 @@ setup(
     version=find_version('django_universal_view_decorator', '__init__.py'),
     description='Write universal django view decorators that work with regular view functions, view classes, and also'
                 'with view class methods. In case of decorating a view class the decorator is inherited by sublcasses.',
-    # long_description=long_description,
+    long_description=long_description,
 
     url='https://github.com/pasztorpisti/django-universal-view-decorator',
 
@@ -72,5 +60,6 @@ setup(
     keywords='django universal view class decorator',
     packages=['django_universal_view_decorator', 'tests'],
 
-    **extra_setup_params
+    test_suite='setup_test_suite.SetupTestSuite',
+    tests_require=['django==1.8', 'mock==1.3.0'],
 )
