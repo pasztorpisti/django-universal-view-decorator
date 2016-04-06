@@ -55,8 +55,8 @@ with codecs.open(os.path.join(script_dir, 'README.rst'), 'r', 'utf8') as f:
 setup(
     name='django-universal-view-decorator',
     version=find_version('django_universal_view_decorator', '__init__.py'),
-    description='Write universal django view decorators that work with regular view functions, view classes, and also '
-                'with view class methods. In case of decorating a view class the decorator is inherited by subclasses.',
+    description='Write universal django view decorators that work with regular '
+                'view functions, view classes, and also with view class methods.',
     long_description=long_description,
 
     url='https://github.com/pasztorpisti/django-universal-view-decorator',
