@@ -250,7 +250,7 @@ more difficult than decorating regular view functions for several reasons includ
 
 - I think view classes and the related object oriented features (inheritance, etc..) make it a bit more difficult
   to trace the execution path of the logic. At the same time they make it more difficult to find the right spots to
-  "insert" extra logic at the right spots for example by applying decorators.
+  "insert" extra logic for example by applying decorators.
 - Writing decorators that manipulate classes in fancy ways isn't the easiest task.
 
 Despite the previously mentioned problems I think class based views are useful but it doesn't change the fact that
