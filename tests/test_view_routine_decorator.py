@@ -3,7 +3,7 @@ import mock
 from django.test import TestCase
 from django.views.generic import View
 
-from django_universal_view_decorator import view_routine_decorator
+from django_universal_view_decorator.decorators.view_routine_decorator import view_routine_decorator
 
 
 def test_log(*args, **kwargs):
