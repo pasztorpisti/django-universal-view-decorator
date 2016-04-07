@@ -6,6 +6,7 @@
 
 /.coverage
 /README.html
+/CHANGES.html
 
 *.pyc
 *.pyo
