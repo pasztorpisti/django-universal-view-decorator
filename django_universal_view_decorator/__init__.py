@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from .decorators.universal_view_decorator import universal_view_decorator
+from .decorators.universal_view_decorator import universal_view_decorator, universal_view_decorator_with_args
 from .decorators.view_decorator_base import ViewDecoratorBase
 
 
-__all__ = ['universal_view_decorator', 'ViewDecoratorBase']
+__all__ = ['universal_view_decorator', 'universal_view_decorator_with_args', 'ViewDecoratorBase']
 
 
 # version_info[0]: Increase in case of large milestones/releases.
