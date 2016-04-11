@@ -196,7 +196,7 @@ class TestHandleDuplicateIdCallsMadeAsExpected(TestCase):
         ], any_order=True)
 
 
-@mock.patch.object(view_class_decorator, '_default_duplicate_handler_func',
+@mock.patch.object(view_class_decorator, '_default_duplicate_handler_func', autospec=True,
                    side_effect=view_class_decorator._default_duplicate_handler_func)
 @mock.patch.object(view_class_decorator, '_handle_duplicate_id', autospec=True,
                    side_effect=view_class_decorator._handle_duplicate_id)
@@ -289,10 +289,10 @@ class TestDuplicateHandlerFuncCalledAsExpected(TestCase):
 
         self.assertFalse(mock_test_log.called)
         mock_handle_duplicate_id.assert_called_once_with(class_decorator, 0, mock.ANY, mock.ANY)
-        mock_default_duplicate_handler_func.assert_called_once_with(0, mock.ANY)
+        mock_default_duplicate_handler_func.assert_called_once_with(class_decorator, 0, mock.ANY)
 
 
-@mock.patch.object(view_class_decorator, '_default_duplicate_handler_func',
+@mock.patch.object(view_class_decorator, '_default_duplicate_handler_func', autospec=True,
                    side_effect=view_class_decorator._default_duplicate_handler_func)
 @mock.patch(__name__ + '.test_log', wraps=test_log)
 class TestDecoratorListAndDecoratorViewExecutionAfterDuplicateHandlingIsAsExpected(TestCase):
@@ -441,13 +441,13 @@ class TestDecoratorListAndDecoratorViewExecutionAfterDuplicateHandlingIsAsExpect
         ])
 
 
-@mock.patch.object(view_class_decorator, '_default_duplicate_handler_func',
+@mock.patch.object(view_class_decorator, '_default_duplicate_handler_func', autospec=True,
                    side_effect=view_class_decorator._default_duplicate_handler_func)
 @mock.patch(__name__ + '.test_log', wraps=test_log)
 class TestDefaultDuplicateHandlerFuncLogic(TestCase):
-    def test_same_priority_keeps_older_decorator(self, mock_test_log, mock_default_duplicate_handler_func):
-        # we haven't specified a priority for the decorators so all of them have priority=-sys.maxint.
-        # We have multiple decorators with id=0, since their priority is the same the dupicate handler
+    def test_same_priority_keeps_oldest_decorator_by_default(self, mock_test_log, mock_default_duplicate_handler_func):
+        # We haven't specified a priority for the decorators so all of them have priority=-sys.maxint.
+        # We have multiple decorators with id=0, since their priority is the same the duplicate handler
         # will keep only the oldest.
         @view_class_decorator(
             decorator(0),
@@ -474,10 +474,41 @@ class TestDefaultDuplicateHandlerFuncLogic(TestCase):
             mock.call('dispatch'),
         ])
 
-    def test_same_priority_keeps_older_decorator_with_user_defined_priorities(
+    def test_same_priority_keeps_newest_when_explicitly_asked_to_do_so(
             self, mock_test_log, mock_default_duplicate_handler_func):
-        # we haven't specified a priority for the decorators so all of them have priority=-sys.maxint.
-        # We have multiple decorators with id=0, since their priority is the same the dupicate handler
+        # We haven't specified a priority for the decorators so all of them have priority=-sys.maxint.
+        # We have multiple decorators with id=0, since their priority is the same the duplicate handler
+        # will keep only the newest because at least one of the duplicate decorators has a
+        # `decorator_duplicate_keep_newest` attribute with a True value.
+        @view_class_decorator(
+            decorator(0, data='newest'),
+            decorator(1),
+            decorator(0, decorator_duplicate_keep_newest=True),
+            decorator(2),
+            decorator(0),
+            decorator(3),
+        )
+        class C0(View):
+            def dispatch(self, request, *args, **kwargs):
+                test_log('dispatch')
+                return 'response'
+
+        response = C0.as_view()('request')
+        self.assertEqual(response, 'response')
+
+        self.assertTrue(mock_default_duplicate_handler_func.called)
+        self.assertListEqual(mock_test_log.mock_calls, [
+            mock.call('decorator', 0, data='newest'),
+            mock.call('decorator', 1),
+            mock.call('decorator', 2),
+            mock.call('decorator', 3),
+            mock.call('dispatch'),
+        ])
+
+    def test_same_priority_keeps_oldest_decorator_with_user_defined_priorities(
+            self, mock_test_log, mock_default_duplicate_handler_func):
+        # We haven't specified a priority for the decorators so all of them have priority=-sys.maxint.
+        # We have multiple decorators with id=0, since their priority is the same the duplicate handler
         # will keep only the oldest.
         @view_class_decorator(
             decorator(1),
@@ -505,6 +536,38 @@ class TestDefaultDuplicateHandlerFuncLogic(TestCase):
             mock.call('dispatch'),
         ])
 
+    def test_same_priority_keeps_newest_decorator_with_user_defined_priorities(
+            self, mock_test_log, mock_default_duplicate_handler_func):
+        # We haven't specified a priority for the decorators so all of them have priority=-sys.maxint.
+        # We have multiple decorators with id=0, since their priority is the same the duplicate handler
+        # will keep only the newest because at least one of the duplicate decorators has a
+        # `decorator_duplicate_keep_newest` attribute with a True value.
+        @view_class_decorator(
+            decorator(1),
+            decorator(0, decorator_duplicate_priority=42, data='newest'),
+            decorator(0, decorator_duplicate_priority=42),
+            decorator(0, decorator_duplicate_priority=42, decorator_duplicate_keep_newest=True),
+            decorator(2),
+            decorator(0, decorator_duplicate_priority=42),
+            decorator(3),
+        )
+        class C0(View):
+            def dispatch(self, request, *args, **kwargs):
+                test_log('dispatch')
+                return 'response'
+
+        response = C0.as_view()('request')
+        self.assertEqual(response, 'response')
+
+        self.assertTrue(mock_default_duplicate_handler_func.called)
+        self.assertListEqual(mock_test_log.mock_calls, [
+            mock.call('decorator', 1),
+            mock.call('decorator', 0, data='newest'),
+            mock.call('decorator', 2),
+            mock.call('decorator', 3),
+            mock.call('dispatch'),
+        ])
+
     def test_user_defined_priorities(self, mock_test_log, mock_default_duplicate_handler_func):
         # Duplicate decorators with id=0. The default duplicate handler func should keep the one
         # with the highest priority.
@@ -513,10 +576,10 @@ class TestDefaultDuplicateHandlerFuncLogic(TestCase):
             decorator(1),
             decorator(0, decorator_duplicate_priority=2, data='winner'), # highest priority
             decorator(2),
-            decorator(0, decorator_duplicate_priority=1),
+            decorator(0, decorator_duplicate_priority=-1),
             decorator(3),
             decorator(0, decorator_duplicate_priority=0),
-            decorator(0, decorator_duplicate_priority=-1),
+            decorator(0, decorator_duplicate_priority=1),
         )
         class C0(View):
             def dispatch(self, request, *args, **kwargs):
