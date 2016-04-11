@@ -3,12 +3,13 @@ CHANGES
 =======
 
 
-Recent changes
---------------
+v0.0.3-beta
+-----------
 
-*Release date: future*
+*Release date: 2016-04-12*
 
 - Moved the library sources into an ``src`` subdir in the package.
+- Fixed setup.py: not including the ``tests`` package in the installation.
 
 
 v0.0.2-beta
