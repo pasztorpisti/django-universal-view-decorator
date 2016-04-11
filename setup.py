@@ -3,7 +3,7 @@
 import os
 import re
 import codecs
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.command.test import test as orig_test
 
 
@@ -54,7 +54,7 @@ with codecs.open(os.path.join(script_dir, 'README.rst'), 'r', 'utf8') as f:
 
 setup(
     name='django-universal-view-decorator',
-    version=find_version('django_universal_view_decorator', '__init__.py'),
+    version=find_version('src', 'django_universal_view_decorator', '__init__.py'),
     description='Write universal django view decorators that work with regular '
                 'view functions, view classes, and also with view class methods.',
     long_description=long_description,
@@ -81,12 +81,8 @@ setup(
     ],
 
     keywords='django universal view class decorator',
-    packages=[
-        'django_universal_view_decorator',
-        'django_universal_view_decorator.decorators',
-        'tests',
-        'tests.test_app',
-    ],
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
 
     test_suite='setup_test_suite.SetupTestSuite',
     tests_require=['django==1.8', 'mock'],

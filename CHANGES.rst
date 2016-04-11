@@ -3,6 +3,14 @@ CHANGES
 =======
 
 
+Recent changes
+--------------
+
+*Release date: future*
+
+- Moved the library sources into an ``src`` subdir in the package.
+
+
 v0.0.2-beta
 -----------
 

@@ -2,7 +2,7 @@
 /.idea/
 /build/
 /dist/
-/django_universal_view_decorator.egg-info/
+/src/django_universal_view_decorator.egg-info/
 
 /.coverage
 /htmlcov/
