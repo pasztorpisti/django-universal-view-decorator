@@ -5,6 +5,8 @@
 /django_universal_view_decorator.egg-info/
 
 /.coverage
+/htmlcov/
+
 /README.html
 /CHANGES.html
 
