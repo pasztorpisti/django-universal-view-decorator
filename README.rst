@@ -113,7 +113,10 @@ Installation
 
     pip install django-universal-view-decorator
 
-Alternatively you can download the zipped library from https://pypi.python.org/pypi/django-universal-view-decorator
+Alternatively you can download the distribution from the following places:
+
+- https://pypi.python.org/pypi/django-universal-view-decorator#downloads
+- https://github.com/pasztorpisti/django-universal-view-decorator/releases
 
 
 Quick-starter
