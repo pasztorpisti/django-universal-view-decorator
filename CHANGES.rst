@@ -3,6 +3,15 @@ CHANGES
 =======
 
 
+v0.1.0
+------
+
+*Release date: 2016-05-01*
+
+- Changed the default decorator_duplicate_priority to zero (from ``-sys.maxsize``).
+- Replaced the original bloated README.rst with a simple short version.
+
+
 v0.0.3-beta
 -----------
 
