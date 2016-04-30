@@ -40,10 +40,10 @@ Smart view class (CBV) decoration
 About Class Based View (CBV) decoration
 =======================================
 
-In django you can implement views in two different ways
+In django you can implement views in two different ways:
 
-    1. FBV (Function Based View)
-    2. CBV (Class Based View)
+1. FBV (Function Based View)
+2. CBV (Class Based View)
 
 A project can make use of both techniques in parallel. While decorators work really well with FBVs, using them
 with CBVs is a bit uglier. The django documentation recommends two techniques to decorate class based views:
