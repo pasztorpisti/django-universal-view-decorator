@@ -2,6 +2,9 @@
 django-universal-view-decorator
 ===============================
 
+Smart view class (CBV) decoration
+"""""""""""""""""""""""""""""""""
+
 
 .. image:: https://img.shields.io/travis/pasztorpisti/django-universal-view-decorator.svg?style=flat
     :target: https://travis-ci.org/pasztorpisti/django-universal-view-decorator
@@ -34,80 +37,80 @@ django-universal-view-decorator
 .. contents::
 
 
-------------
-Introduction
-------------
+About Class Based View (CBV) decoration
+=======================================
+
+In django you can implement views in two different ways
+
+    1. FBV (Function Based View)
+    2. CBV (Class Based View)
+
+A project can make use of both techniques in parallel. While decorators work really well with FBVs, using them
+with CBVs is a bit uglier. The django documentation recommends two techniques to decorate class based views:
+
+https://docs.djangoproject.com/en/1.9/topics/class-based-views/intro/#decorating-class-based-views
+
+1. Decorating in URLConf: applying the decorator to the view function returned by the ``View.as_view()`` class method.
+
+    .. code-block:: python
+
+        urlpatterns = [
+            url(r'^my_view/', permission_required('my_app.my_permission')(MyView.as_view())),
+        ]
+
+    I think this decoration technique is solid. It treats your view class as a view function and places the
+    decorator between the url config and the view function exactly as in case of decorating a FBV. The decorator
+    is guaranteed to execute before any methods in the decorated CBV.
+
+    My only problem is that I have to do this in the URLConf module and on a per-url basis instead of being
+    able to apply the decorator onto the view class in the module in which it has been implemented.
+
+2. Applying your decorator to one of the methods of your view class (e.g.: ``dispatch()``) with the help of
+   ``@django.utils.decorators.method_decorator``.
+
+    .. code-block:: python
+
+        class MyView(View):
+            @method_decorator(permission_required('my_app.my_permission'))
+            def dispatch(self, *args, **kwargs):
+                return super(MyView, self).dispatch(*args, **kwargs)
+
+        # django 1.9+: this way you don't have to override dispatch() just to be able to decorate it
+        @method_decorator(permission_required('my_app.my_permission'), name='dispatch')
+        class MyView(View):
+            ...
+
+    Problems with this solution:
+
+    - If someone subclasses the view and overrides the decorated method then the method override in the subclass is
+      executed before the decorator. The decorator can actually be bypassed completely by not calling the super
+      version of the overridden method. This may be a desired behavior sometimes but in case of some critical
+      (e.g.: permission) decorators it is a problem. In case of decorating in URLConf this isn't a problem: in
+      that case the decorator is always executed before any view class methods.
+    - Minor issue: I have to write ``@method_decorator(permission_required('my_app.my_permission'))`` instead of
+      simply ``@permission_required('my_app.my_permission')``.
 
 
-In django you can implement views in two different standard ways (regular view function, class based view) and the same
-project can make use of both techniques in parallel. In case of class based views I've seen several ways of decorating
-them and none of the techniques were really attractive to me (visually and/or functionally).
+As you see the two decoration techniques have different behavior. I find the behavior of technique #1 (URLConf
+decoration) more useful and robust while cosmetically I prefer applying decorators to my view class implementations
+as in case of technique #2 (``@method_decorator``).
 
-You are probably familiar at least with the easiest ways of writing a decorator: implementing it as a regular function
-(or class) and applying it only to regular view functions. Implementing a decorator that can be applied to both regular
-view functions and instance methods is more challenging especially if you want to access the arguments of the decorated
-function/method.
+This library provides a ``@universal_view_decorator`` helper (similar to django's ``@method_decorator``) that combines
+the behavior of decoration technique #1 with the cosmetics of technique #2:
 
-If we want to be able to apply the same decorator also to view classes then things get messy very quickly depending on
-the expected behavior in that case.
+- You can apply the decorator to the view class directly - you don't have to mess with URLConf unless you want to
+  apply decorators on a per-url basis.
+- Behaves like decoration method #1: under the hood it applies the decorator to the return value of
+  ``View.as_view()`` so it can't be bypassed with subclassing.
 
-I've seen several discussions on mailing lists about modifying view class behavior with decorators VS mixins. While
-it's obviously easier to use decorators with regular functions I think they have some limited use also in case of
-classes. I don't expect you to see this library as THE solution to all of your previous problems. Both decorators and
-mixins have their own problems in case of view classes. It depends on the scenario which solution is less painful to
-apply.
-
-
-Goals
------
-
-With this library I introduce a new way to implement django view decorators. At the same time I provide a
-solution to reuse legacy decorators in a more flexible way.
-
-The goals of this library:
-
-- Easy way to implement view decorators that can be applied to:
-
-  - regular view functions
-  - view class methods
-  - view classes
-
-  If you have simple legacy view decorators that can be applied only to regular view functions then this library
-  also provides wrappers that make your legacy decorator usable in the previously mentioned scenarios.
-
-- The decorator implementation should be able to access view args (like ``request``) easily in a unified way regardless
-  of the type of the view the decorator is applied to.
-- The way of applying the decorator to different kinds of views should look the same in the code. The code should have
-  "good graphics". :-)
-- Additional expectations in case of applying the decorator to view classes:
-
-  - In case of applying the decorator to a view class I want the decorator to treat the view class as a regular
-    view function. What do I mean by this? When you attach a view class to a url you call its ``View.as_view()``
-    method that basically converts it into a view function to be used by django. When I apply my decorator to a
-    view class I want the decorator to decorate the view function returned by the ``as_view()`` method of the view
-    class.
-  - I want the decorator to be inherited by view subclasses and I want it to be difficult for subclasses to execute
-    logic before the logic of the base class decorator. Simply overriding the ``dispatch()`` or ``get()`` or a
-    similar method of the view subclass shouldn't allow code execution before the logic of a base class decorator.
-
-    A difficult-to-bypass view base class decorator logic like this can come in handy in view base classes where you
-    want to employ critical checks (security/permission related stuff). This inherited decorator can be a very good
-    safeguard when others implement their subclasses by building on your base class and inherit your base class
-    decorators.
-
-    Anyway, if you want to provide base class view decoration logic before which a subclass can easily execute its own
-    code then instead of decorating the base class you should probably decorate one of its methods (``dispatch()``,
-    ``get()``, etc...). This way the subclass can easily execute logic before base class method decorator simply by
-    overriding the method.
-
-
------
-Usage
------
+Besides the previously listed features ``@universal_view_decorator`` provides a bit more convenient interface than
+django's ``@method_decorator``: after wrapping your view decorator with this helper you can apply it to FBVs, CBVs
+and CBV methods with the exact same syntax. There is also a ``@universal_view_decorator_with_args`` variant of this
+helper that comes in handy with view decorators that have parameters.
 
 
 Installation
-------------
+============
 
 .. code-block:: sh
 
@@ -119,308 +122,135 @@ Alternatively you can download the distribution from the following places:
 - https://github.com/pasztorpisti/django-universal-view-decorator/releases
 
 
-Quick-starter
--------------
+Usage
+=====
 
-Implementing decorators using this library
-..........................................
 
-I want an easy way to implement ``@my_view_decorator`` that can be applied easily to different kind of views in the
-following way:
+``@universal_view_decorator``
+-----------------------------
+
+If you wrap your view decorator with ``@universal_view_decorator`` then you can apply it to:
+
+- FBVs (just like before wrapping it with ``@universal_view_decorator``)
+- CBVs (with the same behavior as in case of decorating ``View.as_view()`` in URLConf)
+- CBV methods (with the same behavior when applying your decorator to the view class method using django's
+  ``@method_decorator``)
+
 
 .. code-block:: python
 
-    @my_view_decorator
-    def regular_view_function(request):
-        pass
+    from django_universal_view_decorator import universal_view_decorator
 
 
-    @my_view_decorator
-    class ViewClass(View):
+    @universal_view_decorator(login_required)
+    def function_based_view(request):
         ...
 
 
-    class ViewClass2(View):
-        @my_view_decorator(optional_param)
-        def get(self, request):
+    # You can wrap multiple decorators at the same time
+    @universal_view_decorator(login_required, permission_required('my_app.my_permission'))
+    def function_based_view(request):
+        ...
+
+
+    # This double decoration is equivalent in behavior to the previous example
+    # where we used one wrapper to wrap both legacy decorators.
+    @universal_view_decorator(login_required)
+    @universal_view_decorator(permission_required('my_app.my_permission'))
+    def function_based_view(request):
+        ...
+
+
+    # Applying the decorator to view classes. Behavior is the same as applying
+    # the permission decorator to ``ClassBasedView.as_view()`` in the URLConf.
+    @universal_view_decorator(permission_required('my_app.my_permission'))
+    class ClassBasedView(View):
+        ...
+
+
+    # Applying the decorator to view class methods.
+    # Behavior is equivalent to that of django's @method_decorator.
+    class ClassBasedView(View):
+        @universal_view_decorator(login_required)
+        def head(self, request):
             ...
 
 
-The following code block is a possible implementation-skeleton of ``@my_view_decorator`` using this library.
-Despite the long list of my requirements the implementation of the decorator is fairly simple:
+    # Wrapping the decorator only once for reuse in our project:
+    reusable_universal_login_required = universal_view_decorator(logic_required)
+
+
+    @reusable_universal_login_required
+    class ClassBasedView(View):
+        ...
+
+
+``@universal_view_decorator_with_args``
+---------------------------------------
+
+The ``@universal_view_decorator_with_args`` decorator is pretty much the same as ``@universal_view_decorator`` but
+it allows you to parametrize the wrapped decorator *after* wrapping it. This is very useful if you want to wrap
+a decorator only once for reuse but the decorator has parameters that you don't want to specify when you do the
+wrapping:
 
 
 .. code-block:: python
 
-    from django_universal_view_decorator import ViewDecoratorBase
+    from django_universal_view_decorator import universal_view_decorator,
+                                                universal_view_decorator_with_args
 
 
-    class MyViewDecorator(ViewDecoratorBase):
-        # Note: You don't have to override ``__init__()`` if your decorator doesn't
-        # have arguments and you don't have to setup instance attributes.
-        def __init__(self, optional_arg=5):
-            super().__init__()
-            self.optional_arg = optional_arg
+    # with @universal_view_decorator you have to bind args before wrapping :-(
+    my_permission_required = universal_view_decorator(permission_required('my_app.my_permission'))
 
-        def _call_view_function(self, decoration_instance, view_class_instance, view_function, *args, **kwargs):
-            # Note: You can of course use ``self.optional_arg`` in this method.
-            # If you need the request arg of the view...
-            request = args[0]
-            # TODO: manipulate the request and other incoming args/kwargs if you want
-            # TODO: return a response instead of calling the original view if you want
-            response = view_function(*args, **kwargs)
-            # TODO: manipulate the response or forge a new one before returning it
-            return response
+    # we can specify args for permission_required when we apply the decorator :-)
+    universal_permission_required = universal_view_decorator_with_args(permission_required)
 
 
-    # This step makes the decorator compatible with view classes and also makes
-    # it possible to use the decorator without the ``()`` when the decorator has
-    # no required arguments and you don't want to pass any of them.
-    my_view_decorator = MyViewDecorator.universal_decorator
+    @universal_permission_required('my_app.my_permission')
+    def function_based_view(request):
+        ...
 
 
-Giving superpowers to legacy decorators
-.......................................
-
-Besides providing an easy way to implement the above "universal" view decorator this library also provides special
-legacy decorator wrappers that give your legacy view decorators (that can be applied only to regular view functions)
-some of the superpowers of the previously implemented universal view decorator.
-These legacy decorator wrappers have to be applied similarly to ``django.utils.decorators.method_decorator()``:
+    @universal_permission_required('my_app.my_permission')
+    class ClassBasedView(View):
+        ...
 
 
-1.  Use the ``universal_view_decorator`` wrapper when:
-
-    - your legacy decorator has no arguments
-    - your legacy decorator has arguments but it's ok to pass the arguments to your legacy decorator BEFORE wrapping it
-
-
-    .. code-block:: python
-
-        from django_universal_view_decorator import universal_view_decorator
-
-
-        @universal_view_decorator(legacy_decorator)
-        def regular_view_function(request):
+    class ClassBasedView(View):
+        @universal_permission_required('my_app.my_permission')
+        def dispatch(self, request, *args, **kwargs):
             ...
 
 
-        # You can wrap multiple decorators at the same time
-        @universal_view_decorator(legacy_decorator, legacy_decorator_2)
-        def regular_view_function(request):
-            ...
+Inheritance
+===========
 
+Subclasses of a decorated view class inherit the decorators. In the following example ``DerivedView`` inherits a
+``@login_required`` decorator from its base class:
 
-        # This double decoration is equivalent in behavior to the previous example
-        # where we used one wrapper to wrap both legacy decorators.
-        @universal_view_decorator(legacy_decorator)
-        @universal_view_decorator(legacy_decorator_2)
-        def regular_view_function(request):
-            ...
 
+.. code-block:: python
 
-        # With ``@universal_view_decorator`` you have to pass the args to your legacy
-        # decorators BEFORE wrapping them. If you want to pass the args to your decorator
-        # after wrapping then you have to use the ``@universal_view_decorator_with_args``
-        # instead of this wrapper.
-        @universal_view_decorator(legacy_decorator_with_args(arg))
-        def regular_view_function(request):
-            ...
+    from django_universal_view_decorator import universal_view_decorator
 
 
-        # Applying the decorator to view classes
-        @universal_view_decorator(legacy_decorator_with_args('woof', 'woof'))
-        class ViewClass(View):
-            ...
+    @universal_view_decorator(login_required)
+    class BaseView(View):
+        ...
 
 
-        # Applying the decorator to view class methods
-        class ViewClass(View):
-            @universal_view_decorator(legacy_decorator, legacy_decorator_2)
-            def head(self, request):
-                ...
+    @universal_view_decorator(permission_required('my_app.my_permission'))
+    class DerivedView(View):
+        ...
 
 
-        # Reusable wrapped decorator
-        reusable_wrapped_legacy_decorator = universal_view_decorator(legacy_decorator_with_args(5))
+The inherited base class decorators are applied first. The above example has the same effect on ``DerivedView``
+as decorating it in a URLConf like this:
 
 
-        @reusable_wrapped_legacy_decorator
-        class ViewClass(View):
-            ...
+.. code-block:: python
 
-
-
-2.  Use the ``universal_view_decorator_with_args`` wrapper when your decorator has args and you want to pass these args
-    to your legacy decorator AFTER wrapping it. With this wrapper you can't wrap multiple legacy decorators at the
-    same time.
-
-    .. code-block:: python
-
-        from django_universal_view_decorator import universal_view_decorator_with_args
-
-
-        # Wrapping the legacy decorator and the reusing the wrapped one multiple times.
-        wrapped_legacy_decorator = universal_view_decorator_with_args(legacy_decorator_with_args)
-
-
-        @wrapped_legacy_decorator(legacy_decorator_arg)
-        def regular_view_function(request):
-            ...
-
-
-        @wrapped_legacy_decorator(arg1, arg2, kwarg1=1, kwarg2='woof')
-        class ViewClass(View):
-            ...
-
-
-        class ViewClass(View):
-            @wrapped_legacy_decorator(arg1, arg2, kwarg1=1, kwarg2='woof')
-            def get(self, request):
-                ...
-
-
--------------------------------------------------
-I have a lot of time to read boring documentation
--------------------------------------------------
-
-
-Popular view decoration techniques
-----------------------------------
-
-Here comes a brief and probably non-exhaustive collection of popular django view decoration techniques.
-This section can be useful for quick "visual" comparison of the solutions (including mine).
-
-
-Regular view functions
-......................
-
-Decorating a regular view function if fairly straightforward:
-
-1.  You either simply apply the decorator to the regular view function...
-
-    .. code-block:: python
-
-        @legacy_decorator
-        def regular_view_function(request):
-            ...
-
-2.  or you apply the decorator only on a per-url basis in your url config when you attach the view function to a
-    specific url.
-
-    .. code-block:: python
-
-        urlpatterns = [
-            url(r'^my/url/$', legacy_decorator(views.regular_view_function)),
-            ...
-        ]
-
-
-Class based views
-.................
-
-In case of class based views things are a bit more complicated. Decorating view classes and view class methods is
-more difficult than decorating regular view functions for several reasons including these:
-
-- I think view classes and the related object oriented features (inheritance, etc..) make it a bit more difficult
-  to trace the execution path of the logic. At the same time they make it more difficult to find the right spots to
-  "insert" extra logic for example by applying decorators.
-- Writing decorators that manipulate classes in fancy and perhaps useful ways isn't the easiest task.
-
-Despite the previously mentioned problems I think class based views are useful but it doesn't change the fact that
-people have been struggling with applying decorators (or other "behavior modifiers") to them. Probably as a consequence
-of this and maybe because of the early lack of standard solutions people have hacked around and forged quite a few
-different solutions.
-
-Decorating class based views:
-
-1.  On a per-url basis in the url config when the class based view gets converted to a regular view function
-    (by calling its ``as_view()`` class method). I think this is the most reliable and easy-to-understand way to decorate
-    class based views. This is why my view class decorator uses the same insertion point for its decorator logic.
-    The decorator logic sits in a well defined place exactly between the django url dispatcher and the view function.
-
-    .. code-block:: python
-
-        urlpatterns = [
-            url(r'^my/url/$', legacy_decorator(views.ViewClass.as_view())),
-            ...
-        ]
-
-2.  By overriding its ``dispatch()`` method or one of the http-request-method specific methods called by ``dispatch()``
-    and decorating the method (usually with the help of ``django.utils.decorators.method_decorator()`` or using
-    hand-crafted decorators that make use of ugly function or descriptor magic).
-
-    .. code-block:: python
-
-        from django.utils.decorators import method_decorator
-
-        class ViewClass(View):
-            @method_decorator(legacy_decorator)
-            def dispatch(self, request, *args, **kwargs):
-                # We overridden this method without adding logic just
-                # to be able to decorate it. This is a bit ugly.
-                return super().dispatch(request, *args, **kwargs)
-
-            @method_decorator(legacy_decorator_2)
-            def get(self, request):
-                ...
-
-3.  The previous method decoration technique sometimes overrides a method (e.g.: ``dispatch()``) just for the sake of
-    decorating it. The implementation of the method in that case simply calls the ``super()`` version. This is quite an
-    ugly non-pythonic way that has two beautified versions:
-
-    1.  You can apply your decorator to the method by applying the ``django.utils.decorators.method_decorator()`` to
-        the view class by specifying the name of the method to decorate with the ``name`` arg of ``method_decorator()``.
-        (django>=1.9)
-
-        .. code-block:: python
-
-            @method_decorator(legacy_decorator, name='dispatch')
-            class ViewClass(View):
-                ...
-
-    2.  Putting the overridden decorated method into a mixin class that can be added to the base class list of a class
-        based view and can optionally be parametrized through class attributes. This way you make the possibly ugly
-        override + decoration only once in the mixin and then you reuse the mixin several times.
-
-        This mixin technique can also be used without/instead of a decorator because the decorator logic can be put
-        directly into the overridden method of the mixin class.
-
-        .. code-block:: python
-
-            class DecoratorMixin(object):
-                """ Reusable mixin for class based views. """
-                @method_decorator(legacy_decorator)
-                def dispatch(self, request, *args, **kwargs):
-                    return super().dispatch(request, *args, **kwargs)
-
-
-            class DecoratorMixin2(object):
-                """ Reusable mixin for class based views. """
-                def get(self, request, *args, **kwargs):
-                    # In this case we haven't actually used a decorator,
-                    # we put the decorator logic directly to this method.
-                    # TODO: manipulate input args if you want
-                    response = super().get(request, *args, **kwargs)
-                    # TODO: manipulate the response if you want
-                    return response
-
-
-            # The order of base classes is important!
-            class ViewClass(DecoratorMixin, DecoratorMixin2, View):
-                ...
-
-
-Advanced view decorator features
---------------------------------
-
-
-[TODO] Optional decorator arguments
-...................................
-
-
-[TODO] View class decorator inheritance explained
-.................................................
-
-
-[TODO] Managing duplicate view class decorators in the view class hierarchy
-...........................................................................
+    urlpatterns = [
+        url(r'^derived_view/', permission_required('my_app.my_permission')(login_required(DerivedView.as_view()))),
+    ]
