@@ -113,19 +113,19 @@ class ViewClassDecorator(object):
         newest decorator that has been applied to last.
 
         The priority of the decorators is retrieved by getting the `decorator_duplicate_priority` attribute of the
-        decorator object - if this attribute isn't present then the decorator automatically has a very low constant
-        priority that is `-sys.maxsize`. If you specify a priority for your decorator using the
-        `decorator_duplicate_priority` attribute then it should be an integral value.
+        decorator object - if this attribute isn't present then the default priority of the decorator is zero.
+        If you specify a priority for your decorator using the `decorator_duplicate_priority` attribute then it should
+        be an integral value (that can be negative).
 
-        If you don't specify a priority for your decorators then all of them will have the default `-sys.maxint`
+        If you don't specify a priority for your decorators then all of them will have the default zero
         priority so this default duplicate handler func always keeps only the oldest duplicate by default or
         the newest one if your decorator has the `decorator_duplicate_keep_newest = True` attribute. """
         keep_newest = self._get_decorator_attribute(duplicates, 'decorator_duplicate_keep_newest', False)
         index_to_keep = None
-        kept_priority = -sys.maxsize - 1
+        kept_priority = None
         for index, item in (enumerate(duplicates) if keep_newest else reversed(list(enumerate(duplicates)))):
             priority = getattr(item['decorator'], 'decorator_duplicate_priority', -sys.maxsize)
-            if priority > kept_priority:
+            if kept_priority is None or priority > kept_priority:
                 kept_priority = priority
                 index_to_keep = index
 
@@ -134,12 +134,12 @@ class ViewClassDecorator(object):
             if index != index_to_keep:
                 duplicates[index] = None
 
-    _not_found = object()
+    __not_found = object()
 
     def _get_decorator_attribute(self, duplicates, attribute_name, default_value):
         for item in duplicates:
-            value = getattr(item['decorator'], attribute_name, self._not_found)
-            if value is not self._not_found:
+            value = getattr(item['decorator'], attribute_name, self.__not_found)
+            if value is not self.__not_found:
                 return value
         return default_value
 

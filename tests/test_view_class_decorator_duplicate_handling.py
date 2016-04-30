@@ -446,7 +446,7 @@ class TestDecoratorListAndDecoratorViewExecutionAfterDuplicateHandlingIsAsExpect
 @mock.patch(__name__ + '.test_log', wraps=test_log)
 class TestDefaultDuplicateHandlerFuncLogic(TestCase):
     def test_same_priority_keeps_oldest_decorator_by_default(self, mock_test_log, mock_default_duplicate_handler_func):
-        # We haven't specified a priority for the decorators so all of them have priority=-sys.maxint.
+        # We haven't specified a priority for the decorators so all of them have priority=0.
         # We have multiple decorators with id=0, since their priority is the same the duplicate handler
         # will keep only the oldest.
         @view_class_decorator(
@@ -476,7 +476,7 @@ class TestDefaultDuplicateHandlerFuncLogic(TestCase):
 
     def test_same_priority_keeps_newest_when_explicitly_asked_to_do_so(
             self, mock_test_log, mock_default_duplicate_handler_func):
-        # We haven't specified a priority for the decorators so all of them have priority=-sys.maxint.
+        # We haven't specified a priority for the decorators so all of them have priority=0.
         # We have multiple decorators with id=0, since their priority is the same the duplicate handler
         # will keep only the newest because at least one of the duplicate decorators has a
         # `decorator_duplicate_keep_newest` attribute with a True value.
@@ -507,7 +507,7 @@ class TestDefaultDuplicateHandlerFuncLogic(TestCase):
 
     def test_same_priority_keeps_oldest_decorator_with_user_defined_priorities(
             self, mock_test_log, mock_default_duplicate_handler_func):
-        # We haven't specified a priority for the decorators so all of them have priority=-sys.maxint.
+        # We haven't specified a priority for the decorators so all of them have priority=0.
         # We have multiple decorators with id=0, since their priority is the same the duplicate handler
         # will keep only the oldest.
         @view_class_decorator(
@@ -538,7 +538,7 @@ class TestDefaultDuplicateHandlerFuncLogic(TestCase):
 
     def test_same_priority_keeps_newest_decorator_with_user_defined_priorities(
             self, mock_test_log, mock_default_duplicate_handler_func):
-        # We haven't specified a priority for the decorators so all of them have priority=-sys.maxint.
+        # We haven't specified a priority for the decorators so all of them have priority=0.
         # We have multiple decorators with id=0, since their priority is the same the duplicate handler
         # will keep only the newest because at least one of the duplicate decorators has a
         # `decorator_duplicate_keep_newest` attribute with a True value.
@@ -572,7 +572,7 @@ class TestDefaultDuplicateHandlerFuncLogic(TestCase):
         # Duplicate decorators with id=0. The default duplicate handler func should keep the one
         # with the highest priority.
         @view_class_decorator(
-            decorator(0),   # the default priority for this decorator is -sys.maxint
+            decorator(0),   # the default priority for this decorator is 0
             decorator(1),
             decorator(0, decorator_duplicate_priority=2, data='winner'), # highest priority
             decorator(2),
