@@ -1,8 +1,12 @@
 import collections
 import inspect
+import logging
 import types
 
 from ..five import update_wrapper, wraps
+
+
+logger = logging.getLogger(__name__)
 
 
 class ViewClassDecorator(object):
@@ -32,8 +36,18 @@ class ViewClassDecorator(object):
             # the as_view() classmethod of this view class.
             self.__decorate_the_as_view_method(class_to_decorate)
 
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Before decorating %(cls)r with %(decorators)r it already has decorators %(accumulated)r',
+                         dict(cls=class_to_decorate, decorators=self.decorators, accumulated=accumulated_decorators))
+
         setattr(class_to_decorate, '_accumulated_view_class_decorators',
                 self._combine_our_decorators_with_accumulated_ones(class_to_decorate, accumulated_decorators))
+
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('After decorating %(cls)r with %(decorators)r it has decorators %(accumulated)r',
+                         dict(cls=class_to_decorate, decorators=self.decorators,
+                              accumulated=getattr(class_to_decorate, '_accumulated_view_class_decorators')))
+
         return class_to_decorate
 
     @staticmethod
