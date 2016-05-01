@@ -5,7 +5,7 @@ from django.views.generic import View
 
 from django_universal_view_decorator import universal_view_decorator
 
-from .decorators import integerize_view_arg, increase_integer_view_arg
+from .decorators import integerize_view_arg, increase_integer_view_arg, wrapped_increase_integer_view_arg
 
 
 @integerize_view_arg
@@ -28,11 +28,19 @@ class ViewClass(View):
         ))
 
 
+# This @integerize_view_arg will replace the old one applied to the base class
+# (ViewClass) because this decorator has decorator_duplicate_keep_newest=True.
+@integerize_view_arg
+@wrapped_increase_integer_view_arg(increment=-20)
 class ViewSubclass(ViewClass):
     pass
 
 
-class ViewSubclass2(ViewClass):
+# This @integerize_view_arg will replace the old ones applied to the base classes
+# (ViewSubclass) because this decorator has decorator_duplicate_keep_newest=True.
+@integerize_view_arg
+@wrapped_increase_integer_view_arg(increment=-30)
+class ViewSubclass2(ViewSubclass):
     def get(self, request, number):
         # This get() override doesn't call the super implementation so the effect of the
         # increase_integer_view_arg(increment=10) has been eliminated in this subclass.

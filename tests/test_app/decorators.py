@@ -1,10 +1,11 @@
 import numbers
 from functools import wraps
-from django_universal_view_decorator import ViewDecoratorBase
+from django_universal_view_decorator import ViewDecoratorBase, universal_view_decorator_with_args
 
 
 class _IntegerizeViewArg(ViewDecoratorBase):
     decorator_duplicate_id = 'IntegerizeViewArg'
+    decorator_duplicate_keep_newest = True
 
     def __init__(self, view_arg_name='number'):
         super(_IntegerizeViewArg, self).__init__()
@@ -30,3 +31,6 @@ def increase_integer_view_arg(view_arg_name='number', increment=10):
             return wrapped(*args, **kwargs)
         return wrapper
     return decorator
+
+
+wrapped_increase_integer_view_arg = universal_view_decorator_with_args(increase_integer_view_arg)

@@ -32,7 +32,7 @@ class TestResponses(TestCase):
         data = json.loads(response.content.decode('utf-8'))
         self.assertDictContainsSubset(dict(
             responder='ViewSubclass',
-            number=0,
+            number=-20,
         ), data)
 
     def test_view_subclass2(self):
@@ -42,5 +42,5 @@ class TestResponses(TestCase):
         data = json.loads(response.content.decode('utf-8'))
         self.assertDictContainsSubset(dict(
             responder='ViewSubclass2',
-            number=-10,
+            number=-60,
         ), data)
