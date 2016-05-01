@@ -1,8 +1,8 @@
 import inspect
 import types
 
-from ..five import getfullargspec, full_qualname, raise_from
-from ..utils import class_property, update_wrapper, wraps
+from ..five import getfullargspec, full_qualname, raise_from, update_wrapper, wraps
+from ..utils import class_property
 from .view_class_decorator import view_class_decorator
 
 

@@ -2,7 +2,7 @@ import inspect
 
 from .view_class_decorator import view_class_decorator
 from .view_routine_decorator import view_routine_decorator
-from ..utils import wraps
+from ..five import wraps
 
 
 def universal_view_decorator(*decorators, **duplicate_params):

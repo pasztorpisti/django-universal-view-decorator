@@ -1,9 +1,8 @@
 import collections
 import inspect
-import sys
 import types
 
-from ..utils import update_wrapper, wraps
+from ..five import update_wrapper, wraps
 
 
 class ViewClassDecorator(object):
