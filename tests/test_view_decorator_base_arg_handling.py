@@ -1,8 +1,9 @@
+import re
+
 import mock
 from django.test import TestCase
 
 from django_universal_view_decorator import ViewDecoratorBase
-from django_universal_view_decorator.five import PY2
 
 
 def test_log(*args, **kwargs):
@@ -145,11 +146,13 @@ class TestNumRequiredArgsHasExpectedEffectOnDecoratorArgPassing(TestCase):
 
         # Decorating the big nothing gives a useful error message...
         # This decorator expects exactly one thing: the view to decorate.
-        if PY2:
-            regex = r"takes exactly 1 argument \(0 given\)"
-        else:
-            regex = r"missing 1 required positional argument: 'class_or_routine'"
-        self.assertRaisesRegexp(TypeError, regex, MyDecorator.universal_decorator)
+        regexes = [
+            "takes exactly 1 argument (0 given)",                                       # python2
+            "missing 1 required positional argument: 'class_or_routine'",               # python3
+            "MyDecorator.universal_decorator() takes exactly 1 argument (0 given)",     # pypy3
+        ]
+        pattern = '|'.join(re.escape(regex) for regex in regexes)
+        self.assertRaisesRegexp(TypeError, pattern, MyDecorator.universal_decorator)
 
         # Decorating something that isn't a function, class, or class method should fail.
         self.assertRaisesRegexp(TypeError,
