@@ -124,7 +124,7 @@ class ViewClassDecorator(object):
         index_to_keep = None
         kept_priority = None
         for index, item in (enumerate(duplicates) if keep_newest else reversed(list(enumerate(duplicates)))):
-            priority = getattr(item['decorator'], 'decorator_duplicate_priority', -sys.maxsize)
+            priority = getattr(item['decorator'], 'decorator_duplicate_priority', 0)
             if kept_priority is None or priority > kept_priority:
                 kept_priority = priority
                 index_to_keep = index
