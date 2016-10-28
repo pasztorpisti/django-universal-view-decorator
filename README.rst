@@ -241,7 +241,7 @@ Subclasses of a decorated view class inherit the decorators. In the following ex
 
 
     @universal_view_decorator(permission_required('my_app.my_permission'))
-    class DerivedView(View):
+    class DerivedView(BaseView):
         ...
 
 
