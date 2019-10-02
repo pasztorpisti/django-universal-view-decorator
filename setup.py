@@ -84,6 +84,6 @@ setup(
     package_dir={'': 'src'},
 
     test_suite='setup_test_suite.SetupTestSuite',
-    tests_require=['django==1.8', 'mock'],
+    tests_require=['django==1.11.23', 'mock'],
     cmdclass={'test': test},
 )
